@@ -6,16 +6,25 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
+import org.openstack4j.api.Builders;
 import org.openstack4j.api.OSClient.OSClientV2;
 import org.openstack4j.api.OSClient.OSClientV3;
+import org.openstack4j.api.compute.ServerService;
+import org.openstack4j.api.types.ServiceType;
 import org.openstack4j.model.common.Identifier;
 import org.openstack4j.model.compute.Flavor;
+import org.openstack4j.model.compute.HostResource;
+import org.openstack4j.model.compute.Image;
 import org.openstack4j.model.compute.Server;
+import org.openstack4j.model.compute.ServerCreate;
 import org.openstack4j.model.identity.v2.Tenant;
 import org.openstack4j.model.identity.v2.User;
 import org.openstack4j.model.identity.v3.Authentication.Scope.Domain;
 import org.openstack4j.model.identity.v3.Project;
+import org.openstack4j.model.network.Network;
+import org.openstack4j.model.storage.block.Volume;
 import org.openstack4j.model.storage.object.SwiftAccount;
 import org.openstack4j.model.storage.object.SwiftContainer;
 import org.openstack4j.model.storage.object.options.CreateUpdateContainerOptions;
@@ -57,28 +66,69 @@ public class MyDemoV2 {
 		for (Server server : list) {
 			System.out.println(server.getName());
 		}
-		
-        //模板列表 
-        
-//        List<? extends Flavor> flavors = os.compute().flavors().list();
-//        for(Flavor flavor :flavors){
-//            System.out.println(flavor.getName());
-//        }
-//        
-      //domain
-      /*  System.out.println("++++++++++++user列表++++++++++++");
-        List<? extends User> domainList = os.identity().users().list();
-       for (User domain2 : domainList) {
-    	   System.out.println(domain2.getName());
-       }
         
         //project
         System.out.println("++++++++++++project列表++++++++++++");
         List<? extends Tenant> proList = os.identity().tenants().list();
        	for (Tenant project2 : proList) {
 			System.out.println(project2.getName());
-		}*/
+		}
         
+		System.out.println( "++++++++++++++++ host长度 " + os.compute().host().list().size() + "+++++++++++") ; 
+		for (HostResource host : os.compute().host().list()) {
+			System.out.println(host.getHostName());
+		}
+		System.out.println( "++++++++++++++++ service长度 " + os.getSupportedServices().size() + "+++++++++++") ; 
+		Set<ServiceType> supportedServices = os.getSupportedServices();
+		for (ServiceType serviceType : supportedServices) {
+			System.out.println(serviceType.name());
+//			System.out.println(serviceType.getType());
+		}
+		
+		//获取server列表
+		ServerService servers = os.compute().servers();
+		List<? extends Server> serverList = servers.list();
+		System.out.println( "++++++++++++++++ server长度 " + serverList.size() + "+++++++++++") ; 
+		
+		for (Server server : serverList) {
+			System.out.println(server.getName());
+		}
+		String serverName = "windows_wwb_v2_" + System.currentTimeMillis();
+		ServerCreate newServer = Builders.server()
+                .name(serverName)
+                .flavor("1a2151ab-34cd-49fd-9118-e91ad7c53feb")
+                .image("dd4d5f9f-3e62-4ed4-ae73-2ef1ee15e51d")
+                .availabilityZone("nova:computenode")
+                .build();
+        newServer.addNetwork("90720a94-a6eb-4983-aa97-350118e62e47", "100.0.100.166");
+        Server server = os.compute().servers().boot(newServer);
+		System.out.println(server.getName());
+		 /**
+		  * availabilityZone是用户可见的，用户手动的来指定vm运行在哪些host上；Host aggregate是一种更智能的方式，是调度器可见的，影响调度策略的一个表达式。
+		  */
+//		System.out.println("获取Volume账户++++++++++++++++ Volume长度 " + serverList.size() + "+++++++++++");
+		List<? extends Volume> volumes = os.blockStorage().volumes().list();
+		System.out.println("获取Volume账户++++++++++++++++ Volume长度 " + volumes.size() + "+++++++++++");
+		
+		for (Volume volume : volumes) {
+			System.out.println(volume.getId());
+		}
+		
+		//获取images
+		List<? extends Image> images = os.compute().images().list();
+		System.out.println("获取images账户++++++++++++++++ images长度 " + images.size() + "+++++++++++");
+		
+		for (Image image : images) {
+			System.out.println(image.getName() + " : " + image.getId());
+		}
+		//获取网络
+		List<? extends Network> nets = os.networking().network().list();
+		System.out.println("获取nets账户++++++++++++++++ nets长度 " + images.size() + "+++++++++++");
+		
+		for (Network net : nets) {
+			System.out.println(net.getName() + " : " + net.getId());
+		}
+		
         //获取Swift账户
         System.out.println("获取Swift账户:");
         SwiftAccount swiftAccount = os.objectStorage().account().get();

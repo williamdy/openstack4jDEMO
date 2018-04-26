@@ -125,8 +125,10 @@ public class MyDemoV3 {
 		for (Server server : serverList) {
 			System.out.println(server.getName());
 		}
+		
+		String serverName = "windows_wwb_v3_" + System.currentTimeMillis();
 		ServerCreate newServer = Builders.server()
-                .name("Ubuntu 3")
+                .name(serverName)
                 .flavor("1a2151ab-34cd-49fd-9118-e91ad7c53feb")
                 .image("dd4d5f9f-3e62-4ed4-ae73-2ef1ee15e51d")
                 .availabilityZone("nova:computenode")
