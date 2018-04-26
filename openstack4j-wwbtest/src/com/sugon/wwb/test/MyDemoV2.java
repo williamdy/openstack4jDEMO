@@ -61,11 +61,6 @@ public class MyDemoV2 {
 //                .domainId(Constant.DOMAIN_ID)
                 .authenticate();
 		System.out.println("完成认证:"+os.getEndpoint().toString()); 
-//        System.out.println(os.);
-		List<? extends Server> list = os.compute().servers().list();
-		for (Server server : list) {
-			System.out.println(server.getName());
-		}
         
         //project
         System.out.println("++++++++++++project列表++++++++++++");
